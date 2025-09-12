@@ -1,0 +1,16 @@
+{
+  "global_flags": {
+    "new_dashboard": true,
+    "dark_mode": false,
+    "beta_feature": true
+  },
+  "user_overrides": {
+    "alice": {
+      "dark_mode": true
+    },
+    "bob": {
+      "beta_feature": false,
+      "dark_mode": true
+    }
+  }
+}

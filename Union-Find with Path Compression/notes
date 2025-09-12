@@ -1,0 +1,21 @@
+A **Union-Find** (also known as **Disjoint Set Union**, or **DSU**) is a data structure that keeps track of a set of elements partitioned into disjoint (non-overlapping) subsets. It's very useful for problems involving **connectivity**, like **Kruskal's algorithm** for finding minimum spanning trees, or determining if adding an edge will create a cycle in a graph.
+
+### Key Operations:
+
+1. **Find**: Determine which subset an element belongs to.
+2. **Union**: Merge two subsets into a single subset.
+
+### Path Compression:
+
+To make `find()` faster, **path compression** flattens the structure of the tree whenever you call `find`. This means each node directly points to the root of its set, which makes future operations faster.
+
+---
+
+### Why Path Compression Matters
+
+Without path compression, the tree could become skewed (like a linked list), making operations O(n). With path compression (and union by rank), **all operations are nearly constant time** — specifically, **O(α(n))**, where α is the inverse Ackermann function, which grows very slowly.
+
+Let me know if you want to see a step-by-step trace or a visualization.
+
+
+--https://www.youtube.com/watch?v=ayW5B2W9hfo

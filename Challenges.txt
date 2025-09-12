@@ -1,0 +1,48 @@
+### ✅ Monday – Algorithms & Data Structures (Python)
+
+- [x] Implement an LRU Cache using `OrderedDict` AND a custom doubly-linked list
+- [x] Dijkstra’s Algorithm using `heapq`
+- [x] KMP Pattern Matching Algorithm
+- [x] Union-Find (x) with Path Compression (x)
+- [x] Trie with insert/search/delete
+- [x] Top-K Frequent Elements using `heapq` + `collections.Counter`
+
+### ✅ Tuesday – System Design (Python Prototypes)
+
+- [x] Design a Rate Limiter using Token Bucket[x] or Leaky Bucket[x]
+- [x] Build a Feature Flag system (toggle-based control)
+- [SKIP] Design a simplified Chat App (asyncio + websockets)
+- [ ] URL Shortener with basic analytics (Flask + SQLite)
+- [ ] Job Scheduler with Retry and Backoff (use `schedule` or `APScheduler`)
+
+### ✅ Wednesday – Python Language Deep Dive
+
+- [ ] Master `asyncio`, `await`, `gather`, and event loops
+- [ ] Create a Python decorator with arguments
+- [ ] Dive into `contextlib` – make your own context manager
+- [ ] Explore `dataclasses` vs `attrs` vs `pydantic`
+- [ ] Investigate Python memory management with `sys.getsizeof()` and `gc` module
+
+### ✅ Thursday – Build Something Small (Python)
+
+- [ ] Build a CLI tool with `argparse` or `typer` (e.g., JSON formatter)
+- [ ] Markdown to HTML site generator (Jinja2 templating)
+- [ ] Local weather fetcher using a public API (requests + caching)
+- [ ] File organizer script (sort by type/date)
+- [ ] Budget tracker CLI that exports to CSV
+
+### ✅ Friday – Testing & Debugging (Python)
+
+- [ ] Write unit tests using `pytest` with fixtures and parametrization
+- [ ] Add integration tests to one of your small tools
+- [ ] Learn `hypothesis` for property-based testing
+- [ ] Use `pdb` or `ipdb` for step debugging
+- [ ] Profile a script using `cProfile` and visualize with `snakeviz`
+
+### ✅ Weekend Optional – Read & Reflect
+
+- [ ] Read “The Log: What Every Software Engineer Should Know About Real-time Data”
+- [ ] Explore Raft consensus algorithm and Python implementations
+- [ ] Review CPython internals or read Python Enhancement Proposals (PEPs)
+- [ ] Read “Clean Architecture” or a chapter from “Designing Data-Intensive Applications”
+- [ ] Review source code of `http.server`, `itertools`, or `collections`

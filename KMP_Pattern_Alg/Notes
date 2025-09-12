@@ -1,0 +1,236 @@
+The **Knuth-Morris-Pratt (KMP) Pattern Matching Algorithm**
+is an efficient method to find occurrences of a *pattern string* within a *text string*.
+Unlike the naive search which can re-check previously matched characters,
+KMP avoids redundant comparisons by preprocessing the pattern.
+
+---
+
+### ✅ Key Concepts:
+
+1. **Prefix Table (also called LPS: Longest Prefix Suffix array)**
+   This table stores the length of the longest prefix of the pattern that is also a suffix up to that point.
+   It helps skip characters intelligently when a mismatch happens.
+
+2. **Avoids Re-checking**
+   When a mismatch occurs, KMP uses the prefix table to decide how far to "slide" the pattern,
+   skipping unnecessary comparisons.
+
+---
+
+### 🔍 Example:
+
+Search for pattern `"ABABCABAB"` in text `"ABABDABACDABABCABAB"`
+KMP will avoid restarting from index 0 of the pattern when it finds a mismatch.
+
+---
+
+### 🧠 Time Complexity:
+
+* **Preprocessing (LPS array):** `O(m)` where `m` is the length of the pattern
+* **Search:** `O(n)` where `n` is the length of the text
+  **Total:** `O(n + m)`
+
+---
+https://www.geeksforgeeks.org/kmp-algorithm-for-pattern-searching/
+
+
+Example of LPS calculation:
+Absolutely! Here's a step-by-step walkthrough of the LPS (Longest Prefix Suffix) array construction for the pattern **"AAACAAAAAC"**, showing the current pattern with `pattern[index]` and `pattern[length]` **highlighted** at each step.
+
+We'll use:
+
+* `^` to mark `pattern[index]`
+* `*` to mark `pattern[length]`
+
+---
+
+### Pattern: `"AAACAAAAAC"`
+
+Initialize:
+
+```python
+lps = [0] * 10
+length = 0
+index = 1
+```
+
+---
+
+### 🔁 Step-by-step
+
+#### Step 1: index = 1, length = 0
+
+Compare `pattern[1] = A` with `pattern[0] = A`
+
+```
+pattern: A A A C A A A A A C
+           * ^
+```
+
+✅ Match → `length = 1`, `lps[1] = 1`
+
+---
+
+#### Step 2: index = 2, length = 1
+
+Compare `pattern[2] = A` with `pattern[1] = A`
+
+```
+pattern: A A A C A A A A A C
+             * ^
+```
+
+✅ Match → `length = 2`, `lps[2] = 2`
+
+---
+
+#### Step 3: index = 3, length = 2
+
+Compare `pattern[3] = C` with `pattern[2] = A`
+
+```
+pattern: A A A C A A A A A C
+               * ^
+```
+
+❌ Mismatch → fallback `length = lps[1] = 1`
+
+---
+
+#### Retry Step 3: index = 3, length = 1
+
+Compare `pattern[3] = C` with `pattern[1] = A`
+
+```
+pattern: A A A C A A A A A C
+           *     ^
+```
+
+❌ Mismatch → fallback `length = lps[0] = 0`
+
+---
+
+#### Final Retry Step 3: index = 3, length = 0
+
+Compare `pattern[3] = C` with `pattern[0] = A`
+
+```
+pattern: A A A C A A A A A C
+         *       ^
+```
+
+❌ Mismatch → `lps[3] = 0`, no match
+
+---
+
+#### Step 4: index = 4, length = 0
+
+Compare `pattern[4] = A` with `pattern[0] = A`
+
+```
+pattern: A A A C A A A A A C
+         *         ^
+```
+
+✅ Match → `length = 1`, `lps[4] = 1`
+
+---
+
+#### Step 5: index = 5, length = 1
+
+Compare `pattern[5] = A` with `pattern[1] = A`
+
+```
+pattern: A A A C A A A A A C
+           *         ^
+```
+
+✅ Match → `length = 2`, `lps[5] = 2`
+
+---
+
+#### Step 6: index = 6, length = 2
+
+Compare `pattern[6] = A` with `pattern[2] = A`
+
+```
+pattern: A A A C A A A A A C
+             *         ^
+```
+
+✅ Match → `length = 3`, `lps[6] = 3`
+
+---
+
+#### Step 7: index = 7, length = 3
+
+Compare `pattern[7] = A` with `pattern[3] = C`
+
+```
+pattern: A A A C A A A A A C
+               *         ^
+```
+
+❌ Mismatch → fallback `length = lps[2] = 2`
+
+---
+
+#### Retry Step 7: index = 7, length = 2
+
+Compare `pattern[7] = A` with `pattern[2] = A`
+
+```
+pattern: A A A C A A A A A C
+             *           ^
+```
+
+✅ Match → `length = 3`, `lps[7] = 3`
+
+---
+
+#### Step 8: index = 8, length = 3
+
+Compare `pattern[8] = A` with `pattern[3] = C`
+
+```
+pattern: A A A C A A A A A C
+               *           ^
+```
+
+❌ Mismatch → fallback `length = lps[2] = 2`
+
+---
+
+#### Retry Step 8: index = 8, length = 2
+
+Compare `pattern[8] = A` with `pattern[2] = A`
+
+```
+pattern: A A A C A A A A A C
+             *             ^
+```
+
+✅ Match → `length = 3`, `lps[8] = 3`
+
+---
+
+#### Step 9: index = 9, length = 3
+
+Compare `pattern[9] = C` with `pattern[3] = C`
+
+```
+pattern: A A A C A A A A A C
+               *           ^
+```
+
+✅ Match → `length = 4`, `lps[9] = 4`
+
+---
+
+### ✅ Final `lps[]`:
+
+```
+[0, 1, 2, 0, 1, 2, 3, 3, 3, 4]
+```
+
+Would you like a visual chart/diagram of this progression?

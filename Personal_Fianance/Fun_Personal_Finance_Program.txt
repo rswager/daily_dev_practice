@@ -1,0 +1,56 @@
+Project:
+Home Financing Application
+
+Software Requirements:
+	- Use any language you would like. Provide in an uncompiled format (so we can compare notes) as well as a depencies list.
+	- A GUI is not required, but you will need to show a graph. If you output to a .xlsx you can then have the graph generated there instead of showing it in a GUI.
+	- You can use pre-built libraries if you desire, but you are encouraged to code from scratch within reason. I'm not going to ask you to code a GUI and graphs from scratch.
+
+Description:
+	- Design an application that will help project out expenses to help make long term financial plans/decisions
+
+Features:
+	MUST handle the Following:
+		- Financed Payments
+			- Mortgage, Car Payments, Personal Loans, Student Loans
+			- Provide Financed amount, Monthly Payment and payment Date as well as either month(s) financed and/or end date.
+			- If we pay off the Financed amount, we shouldn't charge the amount!
+		- Revolving Credit Payments:
+			- Credit Cards
+			- Provide Financed amount, Monthly Payment and payment Date as well.
+		- Reoccurring Payments
+			- Insurance Payments, Electric/Gas Bill, Streaming Services
+			- Provide payment amount and date of bill
+		- Savings Commitments
+			- How much money in each check goes to savings?  
+			- 
+		- Discretionary Spending
+			- Food expenses, Gas for Vehicle ...etc.
+			- This spending should be applied on/around the day of your income. Or on a weekly basis.
+				(take the monthly amount/4 and apply weekly)
+		- Other Spending
+			- Anything that doesn't fall into the categories above
+		- Income:
+			- Provide Day of week, and how frequent, you receive income and NET income (minus Savings deduction)
+	MUST do the following:
+		- Given and amount of time and all the income/expenses the application should be able to project out your Checking and Savings account
+		- This project should be given in the form of a Graph and the data that generates that graph.
+			- make the data generated look like a balance sheet. One for the Savings account and one for the Checking Account
+			- yet again the Graph can be computed in another application if necessary like Excel, as long as the user doesn't have to make the graph
+		
+	CAN assume the following:
+		- Like air resistance in physics we can ignore interest calculations in Financed options
+
+	OPTIONAL:
+		- Should you put planned Reoccuring Paymenst on a Revolving Credit. Calculate the interest and updated balance for each month.
+		- Take into account Interest Calculations
+		- Take into account/customize 401K and Benefit options, as well as use GROSS pay instead of Net Pay. Or Adjusted Net pay (minus Savings, 401k and benefit, but still assume a certain % for taxes)
+		- Provide multiple ways for calculating payments. For example, Normal method will calculate balances using exact monitary values. Worst Case method with round down Income to nearest $100 (I.E 2550 = 2500, 2799 = 2700 ...etc.) and round up bills to the nearest $100 (or $10 payment is smaller) (I.E $1250 = $1300, $34 = $40 ...etc.)
+		- Provide optional methods that help you plan pay off methods for Loans. I.E a snowball method loan payoff plan.
+			- Take the loan with the highest interest and put all extra money on that loan. Then once that loan is paid off take the next highest interest and put all the extra money into that ...etc.
+		- The output COULD also provide the breakdown of expeses so the user knows what the data represents. If this is a live application you can have the expeses on screen
+
+
+Here is an example of something I built in excel a while ago. It works, but then it is very restricted since alot of things are hard coded. (NOTE I changed all the numbers :p)
+
+https://docs.google.com/spreadsheets/d/1SmSR-rVsPudQQKHdqawmcCCUKJtkJx-wIu3658anwuc/edit?usp=drive_link

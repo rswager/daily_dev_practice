@@ -1,0 +1,59 @@
+Absolutely! Dijkstra's Algorithm is a **shortest path algorithm** used to find the **minimum distance**
+from a source node to all other nodes in a graph, where all edge weights are **non-negative**.
+
+---
+
+### 🧠 Core Idea:
+You explore the graph **greedily**, always expanding the node with the **smallest known distance** from the start.
+Once a node's shortest path is determined, it is **finalized** and never changed.
+
+---
+
+### ✅ When to Use It:
+- You need the **shortest path** from a source to all nodes.
+- All edge weights are **non-negative**.
+- Works with both directed and undirected graphs.
+
+---
+
+### 📌 Key Concepts:
+- Use a **priority queue** (min-heap) to pick the node with the smallest distance.
+- Keep a `distance` dictionary (or array) that tracks the current shortest path to each node.
+- Keep a `visited` set to avoid reprocessing nodes.
+
+---
+
+### 🛠️ Step-by-Step (Pseudocode Style):
+1. Initialize:
+   - Set all distances to `∞` (infinity), except the source which is `0`.
+   - Push `(0, source)` into the priority queue.
+2. While the queue is not empty:
+   - Pop the node with the smallest distance.
+   - If this node has already been visited, skip it.
+   - For each neighbor:
+     - Calculate the potential new distance.
+     - If the new distance is smaller, update it and push the neighbor into the queue.
+3. Repeat until the queue is empty.
+
+---
+
+### 🔢 Example (Weighted Graph):
+
+```
+    A ---5--- B
+     \       |
+      1      2
+       \     |
+         C --1-- D
+```
+
+**Start = A**
+
+- Step 1: A = 0, others = ∞
+- Step 2: Visit A → update C (1), B (5)
+- Step 3: Visit C (1) → update D (1+1=2)
+- Step 4: Visit D (2)
+- Step 5: Visit B (5) → no improvement
+
+Final shortest distances:
+A: 0, C: 1, D: 2, B: 5

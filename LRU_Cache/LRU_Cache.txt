@@ -1,0 +1,42 @@
+An **LRU Cache** (Least Recently Used Cache) is a type of cache algorithm that discards the
+    **least recently used items** first when the cache reaches its capacity limit.
+    It's commonly used to manage memory efficiently in scenarios where fast access to recently used data is important.
+
+### Key Concepts
+
+- **Cache**:
+    Temporary storage for data that's expensive to compute or retrieve.
+- **LRU Policy**:
+    When the cache is full and a new item needs to be added,
+    the item that hasn't been used for the longest time is removed.
+
+### How It Works
+
+An LRU Cache typically supports two operations:
+
+1. `get(key)`:
+    Retrieve the value of the key if it exists in the cache, otherwise return -1.
+2. `put(key, value)`:
+    Insert or update the value of the key. If the cache exceeds capacity, it removes the least recently used item.
+
+### Efficient Implementation
+
+- **Time Complexity**:
+    Both operations should be **O(1)**.
+- To achieve this, a **HashMap** (for fast lookups) and a **Doubly Linked List** (to keep track of usage order) are used.
+    - The **HashMap** maps keys to nodes in the list.
+    - The **Doubly Linked List** maintains the order from most recently used (front) to least recently used (back).
+
+### Example
+
+Assume cache capacity is 2:
+
+```plaintext
+put(1, 1)      # cache: {1=1}
+put(2, 2)      # cache: {1=1, 2=2}
+get(1)         # returns 1, cache: {2=2, 1=1}
+put(3, 3)      # evicts key 2, cache: {1=1, 3=3}
+get(2)         # returns -1 (not found)
+```
+
+Want to see a Python implementation?

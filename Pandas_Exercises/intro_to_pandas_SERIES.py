@@ -216,7 +216,7 @@ if __name__ == '__main__':
             print(insert_tab(temp, "\t\t"))
 
     print("\n############################################################")
-    print(f"You can add constancts using the .add() function")
+    print(f"You can add constants using the .add() function")
     for s_type in all_s.keys():
         print(f"\n\t{s_type}.add(2)")
         print('\tOUTPUT:\n\t\t', end='')
@@ -246,7 +246,7 @@ if __name__ == '__main__':
     print("\n############################################################")
     print(f"You can chain operations!")
     print(f"\tWHERE ((data >= 20) OR ((data>0) AND (data<10))) AND (data != 3.14)."
-          f"dropna().sort_values(ascnding=random.bool).head(1)")
+          f"dropna().sort_values(ascending=random.bool).head(1)")
     for s_type in all_s.keys():
         ascend = bool(random.getrandbits(1))
         print(f"\n\t{s_type}.where((({s_type} >= 20) | (({s_type} > 0) & ({s_type} < 10))) & ({s_type} "

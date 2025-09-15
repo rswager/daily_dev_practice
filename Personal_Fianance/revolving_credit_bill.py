@@ -10,7 +10,7 @@ def is_leap(year_in):
         return True
     return False
 
-
+# Possibly could make revolving a super of financed (with the option to pay only existing in revolving?)
 class RevolvingCreditBill(Bill):
     def __init__(self, name_in, balance_in, payment_day_in, monthly_payment_in, apr_rate_in, credit_limit_in,
                  payment_method_in, round_up_in=False):

@@ -5,13 +5,14 @@ from enumType import AccountType
 @pytest.fixture
 def sample_account():
     """Create a sample account fixture."""
-    return AccountInformation("Netflix", 100.00, AccountType.SUBSCRIPTION)
+    return AccountInformation("Primary_Checking", 100.00, AccountType.CHECKING)
+
 
 
 def test_initial_balance_and_attributes(sample_account):
     """Verify initial values are set correctly."""
-    assert sample_account.account_name == "Netflix"
-    assert sample_account.account_type == AccountType.SUBSCRIPTION
+    assert sample_account.account_name == "Primary_Checking"
+    assert sample_account.account_type == AccountType.CHECKING
     assert sample_account.balance == 100.00
 
 
@@ -84,6 +85,30 @@ def test_is_overdrafted_property_updates_with_balance(sample_account):
     # Deposit back to positive
     sample_account.update_balance(credit=300.00)
     assert sample_account.is_overdrafted is False
+
+@pytest.mark.parametrize("name,balance,type,expected", [
+    ('Primary_Checking' , -100  , AccountType.CHECKING      , True),
+    ('Primary_Checking' , 100   , AccountType.CHECKING      , False),
+    ('Primary_Checking' , 0     , AccountType.CHECKING      , False),
+    ('Primary_Savings'  , -100  , AccountType.SAVINGS       , True),
+    ('Primary_Savings'  , 100   , AccountType.SAVINGS       , False),
+    ('Primary_Savings'  , 0     , AccountType.SAVINGS       , False),
+    ('Netflix'          , -100  , AccountType.SUBSCRIPTION  , False),
+    ('Netflix'          , 100   , AccountType.SUBSCRIPTION  , False),
+    ('Netflix'          , 0     , AccountType.SUBSCRIPTION  , False),
+    ('Utilities'        , -100  , AccountType.REOCCURRING   , False),
+    ('Utilities'        , 100   , AccountType.REOCCURRING   , False),
+    ('Utilities'        , 0     , AccountType.REOCCURRING   , False),
+    ('Car-Loan'         , -100  , AccountType.LOAN          , False),
+    ('Car-Loan'         , 100   , AccountType.LOAN          , False),
+    ('Car-Loan'         , 0     , AccountType.LOAN          , False),
+    ('Discover'         , -100  , AccountType.REVOLVING     , False),
+    ('Discover'         , 100   , AccountType.REVOLVING, False),
+    ('Discover'         , 0     , AccountType.REVOLVING, False)
+])
+def test_is_overdrafted(name,balance,type,expected):
+    account = AccountInformation(name, balance, type)
+    assert account.is_overdrafted == expected
 
 if __name__ == '__main__':
     pytest.main([__file__])

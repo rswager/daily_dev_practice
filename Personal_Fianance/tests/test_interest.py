@@ -14,7 +14,7 @@ def test_daily_interest_non_leap(interest_instance):
     test_date = date(2025, 11, 8)  # non-leap year
     expected_interest = round(abs(bal) * (0.05 / 365), 2)
 
-    interest = interest_instance.calculate_daily_interest(bal, test_date, 0.05)
+    interest = interest_instance.calculate_daily_interest(bal, test_date)
     assert interest == expected_interest
 
 
@@ -24,7 +24,7 @@ def test_daily_interest_leap_year(interest_instance):
     test_date = date(2024, 2, 29)  # leap year
     expected_interest = round(abs(bal) * (0.05 / 366), 2)
 
-    interest = interest_instance.calculate_daily_interest(bal, test_date, 0.05)
+    interest = interest_instance.calculate_daily_interest(bal, test_date)
     assert interest == expected_interest
 
 
@@ -33,7 +33,7 @@ def test_daily_interest_leap_year(interest_instance):
 def test_zero_balance_no_ledger_entry(interest_instance):
     bal = 0.0
     test_date = date(2025, 11, 8)
-    interest = interest_instance.calculate_daily_interest(bal, test_date, 0.05)
+    interest = interest_instance.calculate_daily_interest(bal, test_date)
 
     assert interest == 0
 
@@ -44,7 +44,7 @@ def test_negative_balance_interest_positive(interest_instance):
     test_date = date(2025, 11, 8)
     expected_interest = round(abs(bal) * (0.05 / 365), 2)
 
-    interest = interest_instance.calculate_daily_interest(bal, test_date, 0.05)
+    interest = interest_instance.calculate_daily_interest(bal, test_date)
     assert interest == expected_interest
 
 
@@ -53,28 +53,17 @@ def test_cumulative_interest_multiple_calls(interest_instance):
     bal = 1000.0
     test_date = date(2025, 11, 8)
 
-    interest1 = interest_instance.calculate_daily_interest(bal, test_date, 0.05)
-    interest2 = interest_instance.calculate_daily_interest(bal, test_date, 0.05)
+    interest1 = interest_instance.calculate_daily_interest(bal, test_date)
+    interest2 = interest_instance.calculate_daily_interest(bal, test_date)
 
     assert interest_instance._interest_to_date == round(interest1 + interest2, 2)
-
-
-# --- Custom APR ---
-def test_custom_apr_argument(interest_instance):
-    bal = 1000.0
-    test_date = date(2025, 11, 8)
-
-    interest = interest_instance.calculate_daily_interest(bal, test_date, 0.1)  # 10% APR
-    expected_interest = round(abs(bal) * (0.1 / 365), 2)
-
-    assert interest == expected_interest
 
 
 # --- Rounding Edge Case ---
 def test_small_balance_rounding(interest_instance):
     bal = 0.01
     test_date = date(2025, 11, 8)
-    interest = interest_instance.calculate_daily_interest(bal, test_date, 0.05)
+    interest = interest_instance.calculate_daily_interest(bal, test_date)
 
     # Should round to 2 decimal places
     assert interest == round(0.01 * (0.05 / 365), 2)
@@ -95,6 +84,8 @@ def test_invalid_apr_raises_value_error(invalid_apr):
     """APR outside 0-1 should raise ValueError."""
     with pytest.raises(ValueError):
         Interest(invalid_apr)
+
+
 
 if __name__ == '__main__':
     pytest.main([__file__])

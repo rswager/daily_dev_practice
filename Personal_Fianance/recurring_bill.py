@@ -1,12 +1,12 @@
 from accountInformation import AccountInformation
-from ledger import Ledger
+from bankAccount import BankAccount
 from datetime import date
 from enumType import AccountType, FrequencyType
-from triggerDays import TriggerDays
-from utils import round_value
-from bankAccount import BankAccount
+from ledger import Ledger
 from revolving_credit_bill import RevolvingCreditBill
+from triggerDays import TriggerDays
 from typing import Union
+from utils import round_value
 
 
 class RecurringBill:
@@ -26,6 +26,10 @@ class RecurringBill:
     def ledger(self) -> list:
         # returns a deep copy of the ledger
         return self._ledger.ledger
+
+    @property
+    def raw_copy_ledger(self) -> list:
+        return self._ledger.raw_copy_ledger
 
     @property
     def ledger_col_count(self) -> int:

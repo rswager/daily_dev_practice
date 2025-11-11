@@ -10,8 +10,12 @@ class BankAccount:
 
     @property
     def ledger(self) -> list:
-        # returns a deep copy of the ledger
         return self._ledger.ledger
+
+    @property
+    def raw_copy_ledger(self) -> list:
+        # returns a deepcopy of the ledger
+        return self._ledger.raw_copy_ledger
 
     @property
     def ledger_col_count(self) -> int:
@@ -25,6 +29,6 @@ class BankAccount:
     def account_type(self) -> AccountType:
         return self._accountInfo.account_type
 
-    def make_a_transaction(self, date_in: date, action: str, credit: float, debit: float):
+    def make_a_transaction(self, date_in: date, action: str, credit: float, debit: float) -> None:
         self._accountInfo.update_balance(credit=credit,debit=debit)
-        self._ledger.add_entry_to_ledger([self._ledger.row_number, date_in, action,round(credit,2),round(debit,2), round(self._accountInfo.balance,2)])
+        self._ledger.add_entry_to_ledger([self._ledger.row_number, date_in, action,credit,debit, round(self._accountInfo.balance,2)])

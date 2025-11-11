@@ -1,4 +1,3 @@
-
 def _calculate_rounded_value(value_in:float, mod_value:int, round_up: bool) -> float:
     value_in = int(value_in)
     if value_in % mod_value == 0:

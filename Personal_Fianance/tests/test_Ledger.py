@@ -38,7 +38,7 @@ def test_add_invalid_entry_length(ledger):
 
 def test_ledger_returns_copy(ledger):
     """Ensure ledger property returns a copy, not direct reference."""
-    copy = ledger.ledger
+    copy = ledger.raw_copy_ledger
     copy.append(['2025-11-08', 'Deposit', 100.0])
     assert len(ledger.ledger) == 1  # Ledger should remain unchanged
 

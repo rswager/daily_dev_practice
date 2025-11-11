@@ -1,21 +1,19 @@
-from copy import deepcopy
-
 from accountInformation import AccountInformation
-from enumType import AccountType, FrequencyType
 from bankAccount import  BankAccount
-from typing import Union
 from datetime import date
-from ledger import Ledger
-from utils import round_value
+from enumType import AccountType, FrequencyType
 from interest import Interest
-from triggerDays import TriggerDays
+from ledger import Ledger
 from revolving_credit_bill import RevolvingCreditBill
+from triggerDays import TriggerDays
+from typing import Union
+from utils import round_value
 
 class FinancedBill:
     def __init__(self, name_in:str, balance_in:float, account_type_in: AccountType,
                  initial_pay_date_in: date, frequency_type_in: FrequencyType, minimum_payment_in:float,
                  payment_method_in: Union['RevolvingCreditBill', 'BankAccount'],
-                 apr_rate_in: float, round_up: bool = False):
+                 apr_rate_in: float, round_up: bool = False) -> None:
         self._interest = Interest(apr_rate_in)
         self._minimum_payment = minimum_payment_in if not round_up \
             else round_value(minimum_payment_in, round_up=round_up)
@@ -28,14 +26,18 @@ class FinancedBill:
 
     @property
     def ledger(self) -> list:
-        return deepcopy(self._ledger.ledger)
+        return self._ledger.ledger
+
+    @property
+    def raw_copy_ledger(self) -> list:
+        return self._ledger.raw_copy_ledger
 
     @property
     def ledger_col_count(self) -> int:
         return self._ledger.col_count
 
     @property
-    def loan_balance(self)->float:
+    def loan_balance(self) -> float:
         return self._accountInfo.balance
 
     @property

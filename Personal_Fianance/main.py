@@ -1,12 +1,10 @@
 from bankAccount import BankAccount
 from datetime import date, timedelta
 from enumType import AccountType, FrequencyType
+from financed_bill import FinancedBill
 from income import Income
 from recurring_bill import RecurringBill
 from revolving_credit_bill import RevolvingCreditBill
-from financed_bill import FinancedBill
-
-# Imported Libraries
 import xlsxwriter
 
 
@@ -195,20 +193,20 @@ accounting_format = workbook.add_format({'num_format': 44})
 date_format = workbook.add_format({'num_format': 14})
 for each in accounts:
     worksheet = workbook.add_worksheet(f'{each}_Table')
-    add_table(worksheet_in=worksheet, table_name_in=each, data_in=accounts[each].ledger)
+    add_table(worksheet_in=worksheet, table_name_in=each, data_in=accounts[each].raw_copy_ledger)
     add_chart(workbook_in=workbook, worksheet_in=worksheet, table_name_in=each,
               col_in=get_col(accounts[each].ledger_col_count+1))
 
 
 for each in revolving_credit:
     worksheet = workbook.add_worksheet(f'{each}_Table')
-    add_table(worksheet_in=worksheet, table_name_in=each, data_in=revolving_credit[each].ledger)
+    add_table(worksheet_in=worksheet, table_name_in=each, data_in=revolving_credit[each].raw_copy_ledger)
     add_chart(workbook_in=workbook, worksheet_in=worksheet, table_name_in=each,
               col_in=get_col(revolving_credit[each].ledger_col_count+1))
 
 for each in bills:
     worksheet = workbook.add_worksheet(f'{each}_Table')
-    add_table(worksheet_in=worksheet, table_name_in=each, data_in=bills[each].ledger)
+    add_table(worksheet_in=worksheet, table_name_in=each, data_in=bills[each].raw_copy_ledger)
     if isinstance(bills[each], FinancedBill):
         add_chart(workbook_in=workbook, worksheet_in=worksheet, table_name_in=each,
                   col_in=get_col(bills[each].ledger_col_count+1))

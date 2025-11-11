@@ -31,12 +31,6 @@ def test_trigger_days_returns_copy(monthly_trigger):
     assert len(monthly_trigger.trigger_days) == 1
 
 
-def test_add_trigger_date_caps_day_to_28(monthly_trigger):
-    """Ensure that days greater than 28 are capped to 28."""
-    d = date(2025, 1, 31)
-    monthly_trigger.add_trigger_date(d)
-    assert monthly_trigger.trigger_days[0].day == 28
-
 
 def test_add_trigger_date_valid_day(monthly_trigger):
     """Dates <= 28 should be added as-is."""

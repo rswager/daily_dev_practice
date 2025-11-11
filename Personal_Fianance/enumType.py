@@ -4,6 +4,7 @@ class FrequencyType(Enum):
     MONTHLY = 1
     BI_WEEKLY = 2
     WEEKLY = 3
+    DAILY = 4
 
 class AccountType(Enum):
     CHECKING = 1

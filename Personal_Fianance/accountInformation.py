@@ -14,7 +14,10 @@ class AccountInformation:
 
     @property
     def is_overdrafted(self) -> bool:
-        return self._balance<0
+        # We only want to show over draft on checking and savings accounts
+        if self._account_type in(AccountType.SAVINGS,AccountType.CHECKING):
+            return self._balance<0
+        return False
 
     @balance.setter
     def balance(self,dollar_amount_in:float) -> None:

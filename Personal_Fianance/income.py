@@ -1,7 +1,6 @@
 from bankAccount import BankAccount
-from datetime import date, timedelta
-from enumType import AccountType, FrequencyType
-from recurring_bill import RecurringBill
+from datetime import date
+from enumType import  FrequencyType
 from triggerDays import TriggerDays
 from typing import List,Tuple
 from utils import round_value
@@ -33,9 +32,9 @@ class Income:
             # Make Account Contribution
             self.deposit(transaction_date=date_in)
 
-    def deposit(self,transaction_date:date):
+    def deposit(self,transaction_date:date) -> None:
         # Make Account Contribution
         for account_reference, contribution_percentage in self._account_contributions:
-            payment = round(self._income_amount * contribution_percentage, 2)
+            payment = self._income_amount * contribution_percentage
             account_reference.make_a_transaction(date_in=transaction_date, action=f'{self._income_name} - Check',
                                                  credit=payment, debit=0)

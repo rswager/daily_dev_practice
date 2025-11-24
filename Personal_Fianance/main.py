@@ -1,12 +1,10 @@
-# Developed Objects
-from financed_bill import *
-from recurring_bill import *
-from revolving_credit_bill import *
-from income import *
-from bank_account import *
-
-# Imported Libraries
+from bankAccount import BankAccount
 from datetime import date, timedelta
+from enumType import AccountType, FrequencyType
+from financed_bill import FinancedBill
+from income import Income
+from recurring_bill import RecurringBill
+from revolving_credit_bill import RevolvingCreditBill
 import xlsxwriter
 
 
@@ -31,15 +29,14 @@ def add_table(worksheet_in, table_name_in, data_in):
     data = data_in
     header_in = data.pop(0)
     header = []
-    for column in header_in:
-
-        if column in ['Credit', 'Debit', 'Balance', 'Interest To Date']:
-            column_def = {'header': column, 'format': accounting_format}
-        elif column in ['Date']:
-            column_def = {'header': column, 'format': date_format}
+    # first row of data
+    for index, column_data in enumerate(data[0]):
+        if type(column_data) in(float,int) and index != 0:
+            column_def = {'header': header_in[index], 'format': accounting_format}
+        elif type(column_data) == date:
+            column_def = {'header': header_in[index], 'format': date_format}
         else:
-            column_def = {'header': column}
-
+            column_def = {'header': header_in[index]}
         header.append(column_def)
 
     worksheet_in.add_table(f'A1:{get_col(len(header)-1)}{len(data)+1}', {
@@ -51,7 +48,7 @@ def add_table(worksheet_in, table_name_in, data_in):
     })
 
 
-def add_chart(workbook_in, worksheet_in, table_name_in):
+def add_chart(workbook_in, worksheet_in, table_name_in, col_in):
     chart = workbook_in.add_chart({'type': 'line'})
     chart.add_series({
         'categories': f'{table_name_in}_Table[Date]',
@@ -59,112 +56,135 @@ def add_chart(workbook_in, worksheet_in, table_name_in):
         'name': 'Projected Balance'
     })
 
-    worksheet_in.insert_chart('H1', chart, {'x_scale': 2.5, 'y_scale': 2.5})
+    worksheet_in.insert_chart(f'{col_in}1', chart, {'x_scale': 2.5, 'y_scale': 2.5})
 
-
-# Frequency Codes
-WEEKLY = 1
-BI_WEEKLY = 2
-MONTHLY = 3
-
-# Round Up Down Flag
-# True = Round Up Bills, Round Down Income
-# False = Bills and Income
-round_up_down = False
-
-# Start and End Dates for Simulation
-today = date(2025, 8, 1)
-end_date = date(2032, 8, 1)
-
+round_up_down= False
 accounts = {
-    'primary_checking': BankAccount(account_name_in='Primary Checking', account_type_in='Checking', balance_in=1_000),
-    'primary_savings': BankAccount(account_name_in='Primary Savings', account_type_in='Savings', balance_in=1_500)
+        'primary_checking': BankAccount(name_in='Primary Checking', account_type_in= AccountType.CHECKING,
+                                        balance_in=2_261.33),
+        'primary_savings': BankAccount(name_in='Primary Savings', account_type_in=AccountType.SAVINGS,
+                                       balance_in=3_286.11)
+    }
+
+revolving_credit = {
+    'discover_card': RevolvingCreditBill(name_in='Discovery', balance_in=693.65, account_type_in=AccountType.REVOLVING,
+                                         initial_pay_date_in=date(2025,11,28),
+                                         frequency_type_in=FrequencyType.MONTHLY, minimum_payment_in=400.00,
+                                         payment_method_in=accounts['primary_checking'],apr_rate_in=.15,
+                                         credit_limit_in=30_000.00,round_up=round_up_down
+                                        )
 }
 
 incomes = {
-    'primary_income': Income(name_in='Primary Job', income_in=2_557.31,
-                             account_contributions_in=
-                             [
-                                 (accounts['primary_checking'], .9),  # 90% to primary checking
-                                 (accounts['primary_savings'], .1)  # 10% to primary savings
+    'primary_Income':Income(name_in='Primary Job', income_in=2_557.31,
+                       initial_pay_date_in=date(2025, 11, 6),
+                        account_contributions_in=
+                            [
+                                (accounts['primary_checking'], .9),  # 90% to primary checking
+                                (accounts['primary_savings'], .1)  # 10% to primary savings
                              ],
-                             initial_pay_date_in=date(2025, 8, 7), payment_type_in=BI_WEEKLY, round_down=round_up_down)
-}
-
-revolving_credit = {
-    'discover_card': RevolvingCreditBill(name_in='Discovery', balance_in=30, payment_day_in=28,
-                                         monthly_payment_in=500, apr_rate_in=.15, credit_limit_in=1_500,
-                                         payment_method_in=accounts['primary_checking'], round_up_in=round_up_down)
+                       frequency_type_in=FrequencyType.BI_WEEKLY, round_down=round_up_down)
 }
 
 bills = {
-    'Mortgage': FinancedBill(name_in='Mortgage', balance_in=140_000.00, payment_day_in=1, monthly_payment_in=1_876.00,
-                             payment_method_in=accounts['primary_checking'], round_up_in=round_up_down),
+    'Mortgage': FinancedBill(name_in='Mortgage', balance_in=132_367.00, account_type_in=AccountType.LOAN,
+                                         initial_pay_date_in=date(2025,11,1),
+                                         frequency_type_in=FrequencyType.MONTHLY, minimum_payment_in=924.35,
+                                         payment_method_in=accounts['primary_checking'],apr_rate_in=.0725,
+                                         round_up=round_up_down),
 
-    'Car Payment - Ford': FinancedBill(name_in='Car Payment - Ford', balance_in=28_000.00, payment_day_in=15,
-                                       monthly_payment_in=450.00,
-                                       payment_method_in=accounts['primary_checking'], round_up_in=round_up_down),
+    'Mortgage_Escrow': RecurringBill(name_in='Mortgage_Escrow', minimum_payment_in=924.35,account_type_in=AccountType.REOCCURRING,
+                             initial_pay_date_in=date(2025, 11, 1),
+                             frequency_type_in=FrequencyType.MONTHLY,
+                             payment_method_in=accounts['primary_checking'], round_up=round_up_down),
 
-    'Student Loans': FinancedBill(name_in='Student Loans', balance_in=35_000.00, payment_day_in=30,
-                                  monthly_payment_in=461.00, payment_method_in=accounts['primary_checking'],
-                                  round_up_in=round_up_down),
+    'Car_Payment_Ford': FinancedBill(name_in='Car Payment - Ford', balance_in=28_000.00,
+                                       account_type_in=AccountType.LOAN,initial_pay_date_in=date(2025,11,15),
+                                       frequency_type_in=FrequencyType.MONTHLY, minimum_payment_in=700.00,
+                                       payment_method_in=accounts['primary_checking'], apr_rate_in=.06,
+                                       round_up=round_up_down),
 
-    'Car Insurance': RecurringBill(name_in='Car Insurance', balance_in=0, initial_payment_date_in=date(2025, 8, 16),
-                                   recurring_type_in=MONTHLY, monthly_payment_in=300.00,
-                                   payment_method_in=accounts['primary_checking'], round_up_in=round_up_down),
+    'Student_Loans': FinancedBill(name_in='Student Loans', balance_in=35_000.00,
+                                  account_type_in=AccountType.LOAN, initial_pay_date_in=date(2025, 11, 18),
+                                  frequency_type_in=FrequencyType.MONTHLY, minimum_payment_in=461.00,
+                                  payment_method_in=accounts['primary_checking'], apr_rate_in=.03,
+                                  round_up=round_up_down),
 
-    'Netflix': RecurringBill(name_in='Netflix', balance_in=0, initial_payment_date_in=date(2025, 8, 9),
-                             recurring_type_in=MONTHLY, monthly_payment_in=12.99,
-                             payment_method_in=revolving_credit['discover_card'], round_up_in=round_up_down),
+    'Netflix': RecurringBill(name_in='Netflix', minimum_payment_in=12.99,account_type_in=AccountType.REOCCURRING,
+                             initial_pay_date_in=date(2025, 11, 9),
+                             frequency_type_in=FrequencyType.MONTHLY,
+                             payment_method_in=accounts['primary_checking'], round_up=round_up_down),
 
-    'XboxLive': RecurringBill(name_in='XboxLive', balance_in=0, initial_payment_date_in=date(2025, 8, 3),
-                              recurring_type_in=MONTHLY, monthly_payment_in=12.99,
-                              payment_method_in=revolving_credit['discover_card'], round_up_in=round_up_down),
+    'Car_Insurance': RecurringBill(name_in='Car Insurance', minimum_payment_in=300.00,account_type_in=AccountType.REOCCURRING,
+                             initial_pay_date_in=date(2025, 11, 16),
+                             frequency_type_in=FrequencyType.MONTHLY,
+                             payment_method_in=accounts['primary_checking'], round_up=round_up_down),
 
 
-    'Internet': RecurringBill(name_in='Internet', balance_in=0, initial_payment_date_in=date(2025, 8, 3),
-                              recurring_type_in=MONTHLY, monthly_payment_in=59.99,
-                              payment_method_in=accounts['primary_checking'], round_up_in=round_up_down),
+    'CrunchyRoll': RecurringBill(name_in='CrunchyRoll', minimum_payment_in=11.99,account_type_in=AccountType.REOCCURRING,
+                             initial_pay_date_in=date(2025, 11, 13),
+                             frequency_type_in=FrequencyType.MONTHLY,
+                             payment_method_in=revolving_credit['discover_card'], round_up=round_up_down),
 
-    'Utilities': RecurringBill(name_in='Utilities', balance_in=0, initial_payment_date_in=date(2025, 8, 1),
-                               recurring_type_in=MONTHLY, monthly_payment_in=300.00,
-                               payment_method_in=accounts['primary_checking'], round_up_in=round_up_down),
+    'Spotify': RecurringBill(name_in='Spoify', minimum_payment_in=11.99, account_type_in=AccountType.REOCCURRING,
+                                 initial_pay_date_in=date(2025, 11, 13),
+                                 frequency_type_in=FrequencyType.MONTHLY,
+                                 payment_method_in=revolving_credit['discover_card'], round_up=round_up_down),
 
-    'ADT': RecurringBill(name_in='ADT', balance_in=0, initial_payment_date_in=date(2025, 8, 15),
-                         recurring_type_in=MONTHLY, monthly_payment_in=50.00,
-                         payment_method_in=accounts['primary_checking'], round_up_in=round_up_down),
+    'Internet': RecurringBill(name_in='Internet', minimum_payment_in=59.99,account_type_in=AccountType.REOCCURRING,
+                             initial_pay_date_in=date(2025, 11, 3),
+                             frequency_type_in=FrequencyType.MONTHLY,
+                             payment_method_in=accounts['primary_checking'], round_up=round_up_down),
 
-    'Food': RecurringBill(name_in='Food', balance_in=0, initial_payment_date_in=date(2025, 8, 1),
-                          recurring_type_in=WEEKLY, monthly_payment_in=75.00,
-                          payment_method_in=accounts['primary_checking'], round_up_in=round_up_down),
+    'Utilities': RecurringBill(name_in='Utilities', minimum_payment_in=150.00,account_type_in=AccountType.REOCCURRING,
+                             initial_pay_date_in=date(2025, 11, 1),
+                             frequency_type_in=FrequencyType.MONTHLY,
+                             payment_method_in=accounts['primary_checking'], round_up=round_up_down),
 
-    'Fun': RecurringBill(name_in='Fun', balance_in=0, initial_payment_date_in=date(2025, 8, 1),
-                         recurring_type_in=WEEKLY, monthly_payment_in=50.00,
-                         payment_method_in=accounts['primary_checking'], round_up_in=round_up_down),
+    'ADT': RecurringBill(name_in='ADT', minimum_payment_in=50.00,account_type_in=AccountType.REOCCURRING,
+                             initial_pay_date_in=date(2025, 11, 15),
+                             frequency_type_in=FrequencyType.MONTHLY,
+                             payment_method_in=accounts['primary_checking'], round_up=round_up_down),
 
-    'Gas': RecurringBill(name_in='Gas', balance_in=0, initial_payment_date_in=date(2025, 8, 1),
-                         recurring_type_in=WEEKLY, monthly_payment_in=10.00,
-                         payment_method_in=accounts['primary_checking'], round_up_in=round_up_down),
+    'Food': RecurringBill(name_in='Food', minimum_payment_in=75.00, account_type_in=AccountType.REOCCURRING,
+                             initial_pay_date_in=date(2025, 11, 1),
+                             frequency_type_in=FrequencyType.WEEKLY,
+                             payment_method_in=accounts['primary_checking'], round_up=round_up_down),
 
-    'Therapy': RecurringBill(name_in='Therapy', balance_in=0, initial_payment_date_in=date(2025, 8, 8),
-                             recurring_type_in=BI_WEEKLY, monthly_payment_in=30.00,
-                             payment_method_in=accounts['primary_checking'], round_up_in=round_up_down)
+    'Fun': RecurringBill(name_in='Fun', minimum_payment_in=25.00, account_type_in=AccountType.REOCCURRING,
+                             initial_pay_date_in=date(2025, 11, 1),
+                             frequency_type_in=FrequencyType.WEEKLY,
+                             payment_method_in=accounts['primary_checking'], round_up=round_up_down),
+
+    'Gas': RecurringBill(name_in='Gas', minimum_payment_in=10.00, account_type_in=AccountType.REOCCURRING,
+                             initial_pay_date_in=date(2025, 11, 1),
+                             frequency_type_in=FrequencyType.WEEKLY,
+                             payment_method_in=accounts['primary_checking'], round_up=round_up_down),
+
+    'Therapy': RecurringBill(name_in='Therapy', minimum_payment_in=30.00, account_type_in=AccountType.REOCCURRING,
+                             initial_pay_date_in=date(2025, 11, 8),
+                             frequency_type_in=FrequencyType.BI_WEEKLY,
+                             payment_method_in=accounts['primary_checking'], round_up=round_up_down)
 }
 
+
+today = date(2025, 11, 1)
+end_date = date(2035, 11, 1)
 # Walk Through Each day until we reach last day
 while today < end_date:
-
+    if today.day == 1:
+        print(today)
     # process income
     for income in incomes:
         incomes[income].process_day(today)
 
-    # Process bills
-    for bill in bills:
-        bills[bill].process_day(today)
-
-    # Process revolving credit
+    # Process Revolving Credit
     for credit in revolving_credit:
         revolving_credit[credit].process_day(today)
+
+    # Process Bills
+    for bill in bills:
+        bills[bill].process_day(today)
 
     today += timedelta(days=1)
 
@@ -173,13 +193,22 @@ accounting_format = workbook.add_format({'num_format': 44})
 date_format = workbook.add_format({'num_format': 14})
 for each in accounts:
     worksheet = workbook.add_worksheet(f'{each}_Table')
-    add_table(worksheet_in=worksheet, table_name_in=each, data_in=accounts[each].get_ledger())
-    add_chart(workbook_in=workbook, worksheet_in=worksheet, table_name_in=each)
+    add_table(worksheet_in=worksheet, table_name_in=each, data_in=accounts[each].raw_copy_ledger)
+    add_chart(workbook_in=workbook, worksheet_in=worksheet, table_name_in=each,
+              col_in=get_col(accounts[each].ledger_col_count+1))
 
 
 for each in revolving_credit:
     worksheet = workbook.add_worksheet(f'{each}_Table')
-    add_table(worksheet_in=worksheet, table_name_in=each, data_in=revolving_credit[each].get_ledger())
-    add_chart(workbook_in=workbook, worksheet_in=worksheet, table_name_in=each)
+    add_table(worksheet_in=worksheet, table_name_in=each, data_in=revolving_credit[each].raw_copy_ledger)
+    add_chart(workbook_in=workbook, worksheet_in=worksheet, table_name_in=each,
+              col_in=get_col(revolving_credit[each].ledger_col_count+1))
+
+for each in bills:
+    worksheet = workbook.add_worksheet(f'{each}_Table')
+    add_table(worksheet_in=worksheet, table_name_in=each, data_in=bills[each].raw_copy_ledger)
+    if isinstance(bills[each], FinancedBill):
+        add_chart(workbook_in=workbook, worksheet_in=worksheet, table_name_in=each,
+                  col_in=get_col(bills[each].ledger_col_count+1))
 
 workbook.close()

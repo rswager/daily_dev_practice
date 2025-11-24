@@ -1,41 +1,59 @@
-from bill import *
+from accountInformation import AccountInformation
+from bankAccount import BankAccount
+from datetime import date
+from enumType import AccountType, FrequencyType
+from ledger import Ledger
+from revolving_credit_bill import RevolvingCreditBill
+from triggerDays import TriggerDays
+from typing import Union
+from utils import round_value
 
 
-class RecurringBill(Bill):
-    def __init__(self, name_in, balance_in, initial_payment_date_in, monthly_payment_in, payment_method_in,
-                 recurring_type_in, round_up_in=False):
-        super().__init__(name_in=name_in, balance_in=balance_in, payment_day_in=initial_payment_date_in.day,
-                         monthly_payment_in=monthly_payment_in, payment_method_in=payment_method_in,
-                         billing_type='Recurring Bill',
-                         round_up=round_up_in)
-        self.__total_paid = 0
-        self.__initial_payment_date = initial_payment_date_in
-        self.__recurring_type = recurring_type_in
+class RecurringBill:
+    def __init__(self, name_in: str, minimum_payment_in: float, account_type_in: AccountType,
+                 initial_pay_date_in: date, frequency_type_in: FrequencyType,
+                 payment_method_in: Union['RevolvingCreditBill', 'BankAccount'],
+                 round_up: bool=False) -> None:
+        self._accountInfo = AccountInformation(name_in=name_in, balance_in=0, account_type_in=account_type_in)
+        self._ledger = Ledger(columns=['No.', 'Date', 'Description', 'Credit', 'Total Paid To Date'])
+        self._minimum_payment = minimum_payment_in if not round_up \
+            else round_value(minimum_payment_in, round_up=round_up)
+        self._trigger_days = TriggerDays(frequency_in=frequency_type_in)
+        self._trigger_days.add_trigger_date(new_trigger_date=initial_pay_date_in)
+        self._payment_method: Union['RevolvingCreditBill','BankAccount'] = payment_method_in
+
+    @property
+    def ledger(self) -> list:
+        # returns a deep copy of the ledger
+        return self._ledger.ledger
+
+    @property
+    def raw_copy_ledger(self) -> list:
+        return self._ledger.raw_copy_ledger
+
+    @property
+    def ledger_col_count(self) -> int:
+        return self._ledger.col_count
+
+    @property
+    def account_name(self) -> str:
+        return self._accountInfo.account_name
+
+    @property
+    def account_type(self) -> AccountType:
+        return self._accountInfo.account_type
 
     # Method to apply the payment to the balance
-    def make_payment(self, date_in):
-        # Add the monthly payment to the total payments made.
-        self.__total_paid += self.get_monthly_payment()
-        self.payment_method.make_a_transaction(date_in=date_in, action=f'{self.get_bill_name()}-Payment', credit=0,
-                                               debit=self.get_monthly_payment())
+    def make_payment(self, date_in:date) -> None:
+        # Apply minimum Payment to the Bank Account
+        self._accountInfo.update_balance(credit=self._minimum_payment)
+        #def make_a_transaction(self, date_in: date, action: str, credit: float, debit: float):
+        self._payment_method.make_a_transaction(date_in=date_in, action=f'{self.account_name}-Payment',
+                                                credit=0, debit=self._minimum_payment)
+        self._ledger.add_entry_to_ledger([self._ledger.row_number, date_in, "Minimum Payment",
+                                          self._minimum_payment, self._accountInfo.balance])
 
-    def get_total_paid(self):
-        # immutable type double
-        return self.__total_paid
-
-    def process_day(self, date_in):
-        if self.trigger_day(date_in):
+    def process_day(self, date_in:date) -> None:
+        if self._trigger_days.date_triggered(date_in):
             # Make Account Contribution
             self.make_payment(date_in=date_in)
-
-    def trigger_day(self, date_in):
-        # We make a payment 1 time a month
-        if self.__recurring_type == 3 and min(self.__initial_payment_date.day, 28) == date_in.day:
-            return True
-        # Bi weekly payment
-        elif self.__recurring_type == 2 and abs(self.__initial_payment_date - date_in).days % 14 == 0:
-            return True
-        # Weekly payments
-        elif self.__recurring_type == 1 and abs(self.__initial_payment_date - date_in).days % 7 == 0:
-            return True
-        return False

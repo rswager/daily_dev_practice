@@ -1,29 +1,80 @@
-from bill import *
+from accountInformation import AccountInformation
+from bankAccount import  BankAccount
+from datetime import date
+from enumType import AccountType, FrequencyType
+from interest import Interest
+from ledger import Ledger
+from revolving_credit_bill import RevolvingCreditBill
+from triggerDays import TriggerDays
+from typing import Union
+from utils import round_value
+
+class FinancedBill:
+    def __init__(self, name_in:str, balance_in:float, account_type_in: AccountType,
+                 initial_pay_date_in: date, frequency_type_in: FrequencyType, minimum_payment_in:float,
+                 payment_method_in: Union['RevolvingCreditBill', 'BankAccount'],
+                 apr_rate_in: float, round_up: bool = False) -> None:
+        self._interest = Interest(apr_rate_in)
+        self._minimum_payment = minimum_payment_in if not round_up \
+            else round_value(minimum_payment_in, round_up=round_up)
+        self._accountInfo = AccountInformation(name_in=name_in,balance_in=-balance_in,account_type_in=account_type_in)
+        self._ledger = Ledger(['No.','Date', 'Description', 'Credit', 'Debit', 'Balance', 'Interest To Date'])
+        self._trigger_days = TriggerDays(frequency_in=frequency_type_in)
+        self._trigger_days.add_trigger_date(new_trigger_date=initial_pay_date_in)
+        self._payment_method: Union['RevolvingCreditBill','BankAccount'] = payment_method_in
 
 
-class FinancedBill(Bill):
-    def __init__(self, name_in, balance_in, payment_day_in, monthly_payment_in, payment_method_in, round_up_in=False):
-        super().__init__(name_in=name_in, balance_in=balance_in, payment_day_in=payment_day_in,
-                         monthly_payment_in=monthly_payment_in, payment_method_in=payment_method_in,
-                         billing_type='Financed Bill', round_up=round_up_in)
+    @property
+    def ledger(self) -> list:
+        return self._ledger.ledger
+
+    @property
+    def raw_copy_ledger(self) -> list:
+        return self._ledger.raw_copy_ledger
+
+    @property
+    def ledger_col_count(self) -> int:
+        return self._ledger.col_count
+
+    @property
+    def loan_balance(self) -> float:
+        return self._accountInfo.balance
+
+    @property
+    def account_name(self) -> str:
+        return self._accountInfo.account_name
+
+    @property
+    def account_type(self) -> AccountType:
+        return self._accountInfo.account_type
 
     # Method to apply the payment to the balance
-    def make_payment(self, date_in):
-        if self.get_balance()!= 0:
-            # If balance is more than payment we subtract it and return 0
-            if self.get_balance() >= self.get_monthly_payment():
-                self.set_balance(self.get_balance() - self.get_monthly_payment())
-                # Apply payment to payment method
-                self.payment_method.make_a_transaction(date_in=date_in, action=f'{self.get_bill_name()}-Payment',
-                                                       credit=0, debit=self.get_monthly_payment())
-            # If balance is less than payment we zero out the balance and return the difference ( to credit it back)
-            else:
-                # Apply payment to payment method
-                self.payment_method.make_a_transaction(date_in=date_in, action=f'{self.get_bill_name()}-Payment',
-                                                       credit=0, debit=self.get_balance())
-                self.set_balance(0)
+    def make_payment(self, date_in: date) -> None:
+        if self._accountInfo.balance != 0:
+            min_payment = self._minimum_payment
+            if abs(self._accountInfo.balance)<self._minimum_payment:
+                min_payment = abs(self._accountInfo.balance)
 
-    def process_day(self, date_in):
-        day = date_in.day
-        if day == self.get_payment_day():
+            # Apply minimum Payment to the Bank Account
+            self.make_a_transaction(date_in=date_in, action='Minimum Payment',credit=min_payment,debit=0)
+            self._payment_method.make_a_transaction(date_in=date_in, action=f'{self.account_name}-Payment',
+                                                    credit=0, debit=min_payment)
+
+    def apply_daily_interest(self, date_in: date) -> None:
+        if self._accountInfo.balance != 0:
+            self.make_a_transaction(date_in=date_in,action='Daily Interest',credit=0,
+                                    debit=self._interest.calculate_daily_interest(
+                                        balance_in=self._accountInfo.balance,date_in=date_in))
+
+    def process_day(self, date_in) -> None:
+        # We apply interest EVERY dat
+        self.apply_daily_interest(date_in=date_in)
+        if self._trigger_days.date_triggered(date_in):
+            # Make minimum payment
             self.make_payment(date_in=date_in)
+
+    def make_a_transaction(self, date_in: date, action: str, credit: float, debit: float) -> None:
+        self._accountInfo.update_balance(credit=credit,debit=debit)
+        #['No.', 'Date', 'Description', 'Credit', 'Debit', 'Balance', 'Interest To Date']
+        self._ledger.add_entry_to_ledger([self._ledger.row_number, date_in, action, credit, debit,
+                                          self._accountInfo.balance, self._interest.interest_to_date])

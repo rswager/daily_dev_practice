@@ -123,11 +123,6 @@ class Board:
                 elif cell == 1:
                     shape_fits = False
                     break
-        #   then check to see if we have enough holes
-        #       Then check to see if we can in theory fill all the new holes
-        #           Finally check to see if the holes can actually be filled
-        #               true
-        #   False
 
         # If the shape doesn't fit we need to remove it
         if not shape_fits:

@@ -13,6 +13,7 @@ def format_seconds(seconds):
 
 start_time = time.time()
 weekday = False
+date = '2025-03-07'
 if not weekday:
     shape_list = {
         1: Shapes(1, [[1, 1, 1], [1, 1, 1]], 'FF0000', flip_affected_in=False, rotate_once_in=True),
@@ -24,8 +25,6 @@ if not weekday:
         7: Shapes(7, [[1, 0, 1], [1, 1, 1]], 'A52A2A', flip_affected_in=False),
         8: Shapes(8, [[0, 1], [1, 1], [1, 1]], 'FFA500')
     }
-
-    date = '2025-03-07'
 else:
     shape_list = {
         1: Shapes(1, [[1, 1, 1, 1], [1, 0, 0, 0]], 'FF0000'),
@@ -40,8 +39,6 @@ else:
         10: Shapes(10, [[1, 0, 1], [1, 1, 1]], 'FFC0CB', flip_affected_in=False)
     }
 
-    date = '2025-05-04'
-
 # BFS grows exponentially, so we can limit by orientating the piece(s) in one way
 # The pieces are orientated in the March 7th Position
 # Making this false will return a result eventually, but will take exponentially longer
@@ -50,7 +47,7 @@ force_shape_start_position = True
 print("Date Entered: " + date)
 
 initial_board = Board(shapes_in=shape_list, weekday=weekday)
-initial_board.set_target_date(date, weekday=weekday)
+initial_board.set_target_date(date)
 initial_board.print_visible_board()
 
 

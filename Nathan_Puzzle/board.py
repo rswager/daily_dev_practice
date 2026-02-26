@@ -4,7 +4,8 @@ class Board:
     def __init__(self, shapes_in, weekday=False):
         self.date = ''
         self.shapes = shapes_in
-        if not weekday:
+        self.weekday = weekday
+        if not self.weekday:
             self.board_height = 9
             self.board_width = 9
             self.board = [
@@ -76,14 +77,14 @@ class Board:
             print()  # Newline for next row
         print()
 
-    def set_target_date(self, date_in, weekday=False):
+    def set_target_date(self, date_in):
         date_obj = datetime.strptime(date_in, "%Y-%m-%d")
         self.date = date_in
         month = date_obj.month
         day = date_obj.day
         self.board_mask[int((month - 1) / 6) + 1][((month - 1) % 6) + 1] = -2
         self.board_mask[int((day - 1) / 7) + 3][((day - 1) % 7) + 1] = -2
-        if weekday:
+        if self.weekday:
             day_of_week = date_obj.weekday()
             # Monday
             if day_of_week == 0:

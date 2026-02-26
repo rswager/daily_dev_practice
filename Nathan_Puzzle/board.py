@@ -123,13 +123,22 @@ class Board:
                 elif cell == 1:
                     shape_fits = False
                     break
-        # Check to see if the shape_first
         #   then check to see if we have enough holes
         #       Then check to see if we can in theory fill all the new holes
         #           Finally check to see if the holes can actually be filled
         #               true
         #   False
-        if not shape_fits or self.has_unfillable_holes() or not self.has_enought_holes(shape_id_in):
+
+        # If the shape doesn't fit we need to remove it
+        if not shape_fits:
+            self.remove_shape(shape_id_in)
+
+        # Are we creating hole that are too small to be filled
+        elif self.has_unfillable_holes(shape_id_in):
+            self.remove_shape(shape_id_in)
+
+        # Do we have enough holes to accomodate the remaining shapes
+        elif not self.has_enought_holes(shape_id_in):
             self.remove_shape(shape_id_in)
         else:
             self.placed_pieces.append(shape_id_in)
@@ -137,7 +146,7 @@ class Board:
 
     # This method will check the current state of the board to make sure
     # for any holes we create can possibly be filled by an exsisting piece that hasn't been placed
-    def has_unfillable_holes(self):
+    def has_unfillable_holes(self, shape_id_in):
         visited = [[False for _ in row] for row in self.board_mask]
         hole_sizes = []
 
@@ -161,6 +170,8 @@ class Board:
                     hole_sizes.append(hole_size)
 
         remaining_shapes = [self.shapes[s_id] for s_id in self.shapes if s_id not in self.placed_pieces]
+        if shape_id_in in remaining_shapes:
+            remaining_shapes.remove(shape_id_in)
         shape_sizes = [sum(cell for row in s.piece_shape for cell in row) for s in remaining_shapes]
 
         if not shape_sizes:

@@ -76,6 +76,11 @@ while OPEN:
     current_board.board_mask = copy.deepcopy(board_state)
     current_board.set_placed_pieces()
 
+    if iterations % 1_000 == 0:
+        print("Iteration-", iterations, "  Piece(s) Placed: " + str(len(current_board.placed_pieces)))
+        current_board.print_visible_board()
+    iterations += 1
+
     if current_board.is_in_win_state():
         print("SUCCESS")
         break

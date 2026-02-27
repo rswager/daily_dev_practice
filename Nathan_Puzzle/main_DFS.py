@@ -10,7 +10,18 @@ def board_to_tuple(board):
 def format_seconds(seconds):
     return time.strftime("%H:%M:%S", time.gmtime(seconds))
 
-def solve_dfs(board, total_movements):
+def solve_dfs(board, total_movements, iteration_counter, depth=0):
+    iteration_counter ["count"] += 1
+
+    # 🔹 Print occasionally
+    if iteration_counter["count"] % 100 == 0:
+        print(
+            f"Iterations: {iteration_counter['count']} | "
+            f"Depth: {depth} | "
+            f"Placed: {len(board.placed_pieces)}"
+        )
+        board.print_visible_board()
+
     # 1️⃣ Win check
     if board.is_in_win_state():
         return True
@@ -32,7 +43,7 @@ def solve_dfs(board, total_movements):
                 if board.place_shape_TL_to_BR(shape_id):
 
                     # Recurse deeper
-                    if solve_dfs(board, total_movements):
+                    if solve_dfs(board, total_movements, iteration_counter, depth + 1):
                         return True
 
                     # 🔄 Backtrack
@@ -97,8 +108,8 @@ for shape_id, shape in shape_list.items():
 
 print("Solving with DFS...")
 start_time = time.time()
-
-if solve_dfs(initial_board, total_movements):
+iteration_counter = {"count": 0}
+if solve_dfs(initial_board, total_movements, iteration_counter):
     print("SUCCESS")
     initial_board.print_visible_board()
 else:

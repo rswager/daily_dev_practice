@@ -1,5 +1,8 @@
 from datetime import datetime
 
+from shapes import Shapes
+
+
 class Board:
     def __init__(self, shapes_in, weekday=False):
         self.date = ''
@@ -64,7 +67,7 @@ class Board:
         for row in self.board_mask:
             for cell in row:
                 if cell > 0 and cell not in self.placed_pieces:
-                    self.placed_pieces.append(cell)
+                    self.placed_pieces.append(cell) # add the shape_id if not already in list
 
     def print_visible_board(self):
         for row_num, row in enumerate(self.board_mask):
@@ -110,112 +113,197 @@ class Board:
 
     def place_shape(self, shape_id_in, row_in, col_in):
         shape = self.shapes[shape_id_in].piece_shape
-        shape_fits = True
         for row_num, row in enumerate(shape):
             for col_num, cell in enumerate(row):
                 r, c = row_in + row_num, col_in + col_num
-                if r < self.board_height and c < self.board_width:
-                    if cell == 1 and self.board_mask[r][c] == 0:
-                        self.board_mask[r][c] = shape_id_in
-                    elif cell == 1:
-                        shape_fits = False
-                        break
-                elif cell == 1:
-                    shape_fits = False
-                    break
+                # Place on the board
+                if cell == 1:
+                    self.board_mask[r][c] = shape_id_in
 
-        # If the shape doesn't fit we need to remove it
-        if not shape_fits:
-            self.remove_shape(shape_id_in)
-
-        # Are we creating hole that are too small to be filled
-        elif self.has_unfillable_holes(shape_id_in):
-            self.remove_shape(shape_id_in)
-
-        # Do we have enough holes to accomodate the remaining shapes
-        elif not self.has_enought_holes(shape_id_in):
-            self.remove_shape(shape_id_in)
-        else:
-            self.placed_pieces.append(shape_id_in)
-        return shape_fits
-
-    # This method will check the current state of the board to make sure
-    # for any holes we create can possibly be filled by an exsisting piece that hasn't been placed
-    def has_unfillable_holes(self, shape_id_in):
-        visited = [[False for _ in row] for row in self.board_mask]
-        hole_sizes = []
-
-        def flood_fill(r, c):
-            if r < 0 or c < 0 or r >= len(self.board_mask) or c >= len(self.board_mask[0]):
-                return 0
-            if visited[r][c] or self.board_mask[r][c] != 0:
-                return 0
-            visited[r][c] = True
-            size = 1
-            size += flood_fill(r + 1, c)
-            size += flood_fill(r - 1, c)
-            size += flood_fill(r, c + 1)
-            size += flood_fill(r, c - 1)
-            return size
-
-        for r in range(len(self.board_mask)):
-            for c in range(len(self.board_mask[0])):
-                if not visited[r][c] and self.board_mask[r][c] == 0:
-                    hole_size = flood_fill(r, c)
-                    hole_sizes.append(hole_size)
-
-        remaining_shapes = [self.shapes[s_id] for s_id in self.shapes if s_id not in self.placed_pieces]
-        if shape_id_in in remaining_shapes:
-            remaining_shapes.remove(shape_id_in)
-        shape_sizes = [sum(cell for row in s.piece_shape for cell in row) for s in remaining_shapes]
-
-        if not shape_sizes:
-            return False  # no remaining pieces; all holes are now unfillable or filled
-
-        min_piece_size = min(shape_sizes)
-        for hole in hole_sizes:
-            if hole < min_piece_size:
-                return True  # at least one hole is too small to be filled by any remaining piece
-
-        return False  # all holes are potentially fillable
+    # Check if a shape could fit at a given location without actually placing it
+    def shape_can_fit(self, shape_id_in, row_in, col_in):
+        shape = self.shapes[shape_id_in].piece_shape
+        for row_num, row in enumerate(shape):
+            for col_num, cell in enumerate(row):
+                r, c = row_in + row_num, col_in + col_num
+                if cell == 1:
+                    if r >= self.board_height or c >= self.board_width:
+                        return False
+                    if self.board_mask[r][c] != 0:
+                        return False
+        return True
 
     # This method will check the current state of the board to make sure
     # there is enough spaces for all the remaining pieces to possibly fill the board. (it doesn't check the shape)
-    def has_enought_holes(self, shape_id_in):
-        total_hole_count = 0
-        for row in self.board_mask:
-            for cell in row:
-                if cell == 0:
-                    total_hole_count += 1
+    def has_enough_holes(self, shape_id_in):
+        total_remaining_hole_count = 0
+        for r in range(self.board_height):
+            for c in range(self.board_width):
+                total_remaining_hole_count += 1 if self.board_mask[r][c] == 0 else 0
 
-        total_shape_blocks = 0
+        total_remaining_shape_holes_needed = 0
         for shape_id in self.shapes:
             if shape_id not in self.placed_pieces and shape_id != shape_id_in:
-                for row in self.shapes[shape_id].original_piece_shape:
-                    for cell in row:
-                        if cell == 1:
-                            total_shape_blocks+=1
+                total_remaining_shape_holes_needed += self.shapes[shape_id].piece_size
 
-        if total_hole_count != total_shape_blocks:
+        # The remaining holes should account for the remaining shapes
+        if total_remaining_hole_count != total_remaining_shape_holes_needed:
             return False  # Prune this path
+        return True
+
+    # This method will check the current state of the board to make sure
+    # for any holes we create can possibly be filled by an existing piece that hasn't been placed
+    def has_unfillable_holes(self, shape_id_in):
+        remaining_hole_sizes = self.get_hole_sizes()
+
+        # get the remaining shapes
+        remaining_shapes_sizes = []
+        for shape_id in self.shapes:
+            if shape_id not in self.placed_pieces and shape_id != shape_id_in:
+                remaining_shapes_sizes.append(self.shapes[shape_id].piece_size)
+
+        if len(remaining_shapes_sizes) == 0:
+            return False
+
+        smallest_piece = min(remaining_shapes_sizes)
+
+        # If any hole is smaller than the smallest remaining piece,
+        # it can never be filled
+        for hole in remaining_hole_sizes:
+            if hole < smallest_piece:
+                return True
+
+        return False
+
+
+    def get_hole_sizes(self):
+
+        visited = [[False for _ in row] for row in self.board_mask]
+        groups = []
+
+        def dfs(r, c):
+            # Check bounds
+            if r < 0 or r >= self.board_height or c < 0 or c >= self.board_width:
+                return 0
+
+            # Stop if not zero or already visited
+            if self.board_mask[r][c] != 0 or visited[r][c]:
+                return 0
+
+            visited[r][c] = True
+
+            # Count this cell
+            count = 1
+
+            # Explore neighbors (4-directional)
+            count += dfs(r + 1, c)
+            count += dfs(r - 1, c)
+            count += dfs(r, c + 1)
+            count += dfs(r, c - 1)
+
+            return count
+
+        for r in range(self.board_height):
+            for c in range(self.board_width):
+                if self.board_mask[r][c] == 0 and not visited[r][c]:
+                    group_size = dfs(r, c)
+                    groups.append(group_size)
+
+        return groups
+
+    def can_fit_next_pieces(self, shape_id_in):
+        # get the remaining_pieces
+        remaining_shapes = []
+        for shape_id in self.shapes:
+            if shape_id not in self.placed_pieces and shape_id != shape_id_in:
+                remaining_shapes.append(shape_id)
+
+        for shape_id in remaining_shapes:
+            shape = self.shapes[shape_id]
+            shape_fit = False
+            # need to go over all the orientations
+            movements = shape.get_movements(forced_position=False)[shape_id]
+            for degree, flip in movements:
+                # Set the shape
+                shape.set_shape(degree, flip)
+                # start seeing if it can place
+                for r in range(self.board_height):
+                    for c in range(self.board_width):
+                        # if we can fit we break out
+                        if self.shape_can_fit(shape_id, r, c):
+                            shape_fit = True
+                            break
+                    if shape_fit:
+                        break
+                if shape_fit:
+                    break
+            if not shape_fit:
+                return False
         return True
 
     def place_shape_TL_to_BR(self, shape_id_in):
         for row_num, row in enumerate(self.board_mask):
             for col_num, _ in enumerate(row):
-                if self.place_shape(shape_id_in, row_num, col_num):
-                    return True
+                if self.shape_can_fit(shape_id_in, row_num, col_num):
+                    # The shape can fit! Let's place it and test the rest of the cases
+                    self.place_shape(shape_id_in, row_num, col_num)
+
+                    # # Do we have enough holes to accommodate the remaining shapes
+                    # if not self.has_enough_holes(shape_id_in):
+                    #     self.remove_shape(shape_id_in)
+
+                    # Are we creating hole that are too small to be filled
+                    if self.has_unfillable_holes(shape_id_in):
+                        self.remove_shape(shape_id_in)
+                    #
+                    # elif not self.can_fit_next_pieces(shape_id_in):
+                    #     self.remove_shape(shape_id_in)
+                    # We passed all the test so we can place.
+                    else:
+                        self.placed_pieces.append(shape_id_in)
+                        return True
         return False
 
     def remove_shape(self, shape_id_in):
-        for row_num, row in enumerate(self.board_mask):
-            for col_num, cell in enumerate(row):
-                if cell == shape_id_in:
+        for row_num in range(self.board_height):
+            for col_num in range(self.board_width):
+                if self.board_mask[row_num][col_num] == shape_id_in:
                     self.board_mask[row_num][col_num] = 0
-        self.placed_pieces = [x for x in self.placed_pieces if x != shape_id_in]
+        if shape_id_in in self.placed_pieces:
+            self.placed_pieces.remove(shape_id_in)
 
     def is_in_win_state(self):
         return all(cell != 0 for row in self.board_mask for cell in row)
 
     def are_arrays_equal(self, board1_in, board2_in):
         return board1_in == board2_in
+
+if __name__ == '__main__':
+    shape_list = {
+        1: Shapes(1, [[1, 1, 1], [1, 1, 1]], 'FF0000', flip_affected_in=False, rotate_once_in=True),
+        2: Shapes(2, [[1, 1], [1, 0], [1, 0], [1, 0]], '0000FF'),
+        3: Shapes(3, [[1, 1, 0, 0], [0, 1, 1, 1]], '00FF00'),
+        4: Shapes(4, [[1, 0], [1, 1], [1, 0], [1, 0]], 'FFFF00'),
+        5: Shapes(5, [[0, 0, 1], [1, 1, 1], [1, 0, 0]], '00FFFF'),
+        6: Shapes(6, [[1, 0, 0], [1, 0, 0], [1, 1, 1]], '800080', flip_affected_in=False),
+        7: Shapes(7, [[1, 0, 1], [1, 1, 1]], 'A52A2A', flip_affected_in=False),
+        8: Shapes(8, [[0, 1], [1, 1], [1, 1]], 'FFA500')
+    }
+    board = Board(weekday=False, shapes_in=shape_list)
+    board.set_target_date(date_in='2025-03-07')
+    board.place_shape_TL_to_BR(1)
+    board.print_visible_board()
+    board.place_shape_TL_to_BR(2)
+    board.print_visible_board()
+    board.place_shape_TL_to_BR(3)
+    board.print_visible_board()
+    board.place_shape_TL_to_BR(4)
+    board.print_visible_board()
+    board.place_shape_TL_to_BR(5)
+    board.print_visible_board()
+    board.place_shape_TL_to_BR(6)
+    board.print_visible_board()
+    board.place_shape_TL_to_BR(7)
+    board.print_visible_board()
+    board.place_shape_TL_to_BR(8)
+    board.print_visible_board()

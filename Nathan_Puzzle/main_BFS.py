@@ -13,7 +13,7 @@ def format_seconds(seconds):
 
 start_time = time.time()
 weekday = False
-date = '2025-03-07'
+date = '2026-03-07'
 if not weekday:
     shape_list = {
         1: Shapes(1, [[1, 1, 1], [1, 1, 1]], 'FF0000', flip_affected_in=False, rotate_once_in=True),
@@ -43,7 +43,7 @@ else:
 # The pieces are orientated in the March 7th Position
 # Making this false will return a result eventually, but will take exponentially longer
 #     Later testing results in about 1 hr to run with forced being False
-force_shape_start_position = True
+force_shape_start_position = False
 print("Date Entered: " + date)
 
 initial_board = Board(shapes_in=shape_list, weekday=weekday)
@@ -62,44 +62,38 @@ OPEN.append(copy.deepcopy(initial_board.board_mask))
 SOLVED = False
 print("Processing...")
 iterations = 0
-while not SOLVED and len(OPEN) > 0:
+while OPEN:
     board_state = OPEN.popleft()
-    # Create a new board for this state
+
+    serialized_state = board_to_tuple(board_state)
+
+    if serialized_state in CLOSED:
+        continue
+
+    CLOSED.add(serialized_state)
+
     current_board = Board(shapes_in=shape_list, weekday=weekday)
     current_board.board_mask = copy.deepcopy(board_state)
     current_board.set_placed_pieces()
+
     if iterations % 1_000 == 0:
         print("Iteration-", iterations, "  Piece(s) Placed: " + str(len(current_board.placed_pieces)))
         current_board.print_visible_board()
-    iterations +=1
-    # Serialize and mark as visited
-    serialized_state = board_to_tuple(current_board.board_mask)
-    CLOSED.add(serialized_state)
+    iterations += 1
 
-    # check to see if we have reached a win state
-    # If Yes we are DONE
     if current_board.is_in_win_state():
         print("SUCCESS")
-        current_board.print_visible_board()
-        SOLVED = True
         break
-    # Try placing each unused shape with each transformation (Populated all the child nodes)
+
     for shape_id in total_movements:
-        # We cannot place a piece more than once
         if shape_id not in current_board.placed_pieces:
-            # Get all the orientations of the piece
+
             for degree, flip in total_movements[shape_id]:
-                # Set the shape orientation
                 shape_list[shape_id].set_shape(rotation_in=degree, flip_in=flip)
-                temp_board = copy.deepcopy(current_board)
-                # Attmept to place the piece
-                if temp_board.place_shape_TL_to_BR(shape_id):
-                    next_state = board_to_tuple(temp_board.board_mask)
-                    # if we have successfully placed the piece we need
-                    # to see if we have already made this move
-                    if next_state not in CLOSED:
-                        # If we have not we need to add it to the process list
-                        OPEN.append(copy.deepcopy(temp_board.board_mask))
+
+                if current_board.place_shape_TL_to_BR(shape_id):
+                    OPEN.append(copy.deepcopy(current_board.board_mask))
+                    current_board.remove_shape(shape_id)
 
 print(format_seconds(time.time()-start_time))
 print("Processed Boards:", len(CLOSED))

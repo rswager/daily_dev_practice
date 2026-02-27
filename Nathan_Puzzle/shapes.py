@@ -11,6 +11,7 @@ class Shapes:
         self.color = color_in
         self.flip_affected = flip_affected_in
         self.rotate_once = rotate_once_in
+        self.piece_size = sum(sum(x) for x in self.original_piece_shape)
 
     def get_movements(self, forced_position=False):
         movements = {self.id_number: []}
